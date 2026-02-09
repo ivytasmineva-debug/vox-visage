@@ -3,7 +3,7 @@ import { Send } from "lucide-react";
 import { Msg, streamChat } from "@/lib/streamChat";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
-import AvatarDisplay from "@/components/AvatarDisplay";
+import Avatar3D from "@/components/Avatar3D";
 import ChatMessage from "@/components/ChatMessage";
 import VoiceButton from "@/components/VoiceButton";
 import LanguageToggle from "@/components/LanguageToggle";
@@ -69,7 +69,6 @@ const Index = () => {
           onDelta: upsertAssistant,
           onDone: () => {
             setIsLoading(false);
-            // Speak the response
             if (assistantSoFar) {
               speak(assistantSoFar, lang);
             }
@@ -94,7 +93,7 @@ const Index = () => {
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-border">
+      <header className="flex items-center justify-between px-6 py-3 border-b border-border">
         <h1 className="text-lg font-display font-bold tracking-widest text-primary">
           AURA
         </h1>
@@ -103,15 +102,15 @@ const Index = () => {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center overflow-hidden">
-        {/* Avatar section */}
-        <div className="py-8 animate-float">
-          <AvatarDisplay isListening={isListening} isSpeaking={isSpeaking} isThinking={isLoading} />
+        {/* 3D Avatar section */}
+        <div className="w-full max-w-lg">
+          <Avatar3D isListening={isListening} isSpeaking={isSpeaking} isThinking={isLoading} />
         </div>
 
         {/* Chat area */}
         <div className="flex-1 w-full max-w-2xl overflow-y-auto px-4 pb-4 space-y-4">
           {messages.length === 0 && (
-            <div className="text-center text-muted-foreground mt-8">
+            <div className="text-center text-muted-foreground mt-4">
               <p className="font-display text-sm tracking-wider">
                 {lang === "bn-BD"
                   ? "আমি AURA, আপনার AI সহকারী। কিছু জিজ্ঞেস করুন!"
