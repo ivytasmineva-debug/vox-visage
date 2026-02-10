@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { createAvatarViewer, AvatarViewer } from "@/lib/gltfViewer";
+import { attachAvatarInteractions } from "@/lib/avatarInteractions";
 
 // Default GLB model — replace with your own avatar URL
 const DEFAULT_GLB_URL =
@@ -20,10 +21,11 @@ const Avatar3D = ({
 }: Avatar3DProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<AvatarViewer | null>(null);
+  const interactionsRef = useRef<Awaited<ReturnType<typeof attachAvatarInteractions>> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize viewer
+  // Initialize viewer + interactions
   useEffect(() => {
     if (!containerRef.current) return;
     let disposed = false;
@@ -38,12 +40,23 @@ const Avatar3D = ({
       bloomThreshold: 0.85,
       controls: true,
     })
-      .then((viewer) => {
+      .then(async (viewer) => {
         if (disposed) {
           viewer.dispose();
           return;
         }
         viewerRef.current = viewer;
+
+        // Attach drag + mic interactions
+        const interactions = await attachAvatarInteractions(
+          containerRef.current!,
+          viewer
+        );
+        if (disposed) {
+          interactions.dispose();
+          return;
+        }
+        interactionsRef.current = interactions;
         setLoading(false);
       })
       .catch((err) => {
@@ -56,6 +69,8 @@ const Avatar3D = ({
 
     return () => {
       disposed = true;
+      interactionsRef.current?.dispose();
+      interactionsRef.current = null;
       viewerRef.current?.dispose();
       viewerRef.current = null;
     };
@@ -64,14 +79,22 @@ const Avatar3D = ({
   // Sync states
   useEffect(() => {
     viewerRef.current?.setListening(isListening);
+    interactionsRef.current?.setState(isListening ? 'listening' : 'idle');
+    if (isListening) {
+      interactionsRef.current?.startMic();
+    } else {
+      interactionsRef.current?.stopMic();
+    }
   }, [isListening]);
 
   useEffect(() => {
     viewerRef.current?.setSpeaking(isSpeaking);
+    interactionsRef.current?.setState(isSpeaking ? 'speaking' : 'idle');
   }, [isSpeaking]);
 
   useEffect(() => {
     viewerRef.current?.setThinking(isThinking);
+    interactionsRef.current?.setState(isThinking ? 'thinking' : 'idle');
   }, [isThinking]);
 
   return (
