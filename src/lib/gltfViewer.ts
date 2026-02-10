@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader, DRACOLoader, OrbitControls, EffectComposer, RenderPass, UnrealBloomPass } from "three-stdlib";
 import type { GLTF } from "three-stdlib";
+import { findVisemeMeshes, LipSyncAnimator } from "./lipSync";
 
 export type ViewerOptions = {
   pixelRatio?: number;
@@ -17,6 +18,7 @@ export type AvatarViewer = {
   renderer: THREE.WebGLRenderer;
   gltf: GLTF;
   model: THREE.Object3D;
+  lipSync: LipSyncAnimator;
   setListening: (v: boolean) => void;
   setSpeaking: (v: boolean) => void;
   setThinking: (v: boolean) => void;
@@ -136,6 +138,11 @@ export async function createAvatarViewer(
   let isSpeaking = false;
   let isThinking = false;
 
+  /* Lip Sync */
+  const visemeMeshes = findVisemeMeshes(model);
+  const lipSync = new LipSyncAnimator(visemeMeshes);
+  console.log(`[AURA] Lip sync: found ${visemeMeshes.length} mesh(es) with ${lipSync.visemeCount} viseme morph targets`);
+
   /* Animation Loop */
   let running = true;
   const baseY = model.position.y;
@@ -163,6 +170,9 @@ export async function createAvatarViewer(
       model.rotation.z *= 0.95;
       model.rotation.x *= 0.95;
     }
+
+    // Lip sync update
+    lipSync.update();
 
     // Dynamic glow light
     if (isListening) {
@@ -200,8 +210,9 @@ export async function createAvatarViewer(
     renderer,
     gltf,
     model,
+    lipSync,
     setListening(v: boolean) { isListening = v; },
-    setSpeaking(v: boolean) { isSpeaking = v; },
+    setSpeaking(v: boolean) { isSpeaking = v; lipSync.setSpeaking(v); },
     setThinking(v: boolean) { isThinking = v; },
     dispose() {
       running = false;
