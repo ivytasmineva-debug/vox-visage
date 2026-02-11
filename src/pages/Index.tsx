@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Send, Settings } from "lucide-react";
 import { Msg, streamChat } from "@/lib/streamChat";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
@@ -9,11 +10,15 @@ import VoiceButton from "@/components/VoiceButton";
 import LanguageToggle from "@/components/LanguageToggle";
 import { toast } from "sonner";
 
+const STORAGE_KEY = "aura-selected-model";
+
 const Index = () => {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [lang, setLang] = useState<"bn-BD" | "en-US">("bn-BD");
+  const [glbUrl, setGlbUrl] = useState(() => localStorage.getItem(STORAGE_KEY) || "/698bdd8efcad0d2f33536b28.glb");
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -97,14 +102,23 @@ const Index = () => {
         <h1 className="text-lg font-display font-bold tracking-widest text-primary">
           AURA
         </h1>
-        <LanguageToggle lang={lang} onToggle={() => setLang((l) => (l === "bn-BD" ? "en-US" : "bn-BD"))} />
+        <div className="flex items-center gap-2">
+          <LanguageToggle lang={lang} onToggle={() => setLang((l) => (l === "bn-BD" ? "en-US" : "bn-BD"))} />
+          <button
+            onClick={() => navigate("/settings")}
+            className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-primary"
+            title="Settings"
+          >
+            <Settings size={18} />
+          </button>
+        </div>
       </header>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center overflow-hidden">
         {/* 3D Avatar section */}
         <div className="w-full max-w-lg">
-          <Avatar3D isListening={isListening} isSpeaking={isSpeaking} isThinking={isLoading} />
+          <Avatar3D isListening={isListening} isSpeaking={isSpeaking} isThinking={isLoading} glbUrl={glbUrl} />
         </div>
 
         {/* Chat area */}

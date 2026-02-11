@@ -2,9 +2,8 @@ import { useRef, useEffect, useState } from "react";
 import { createAvatarViewer, AvatarViewer } from "@/lib/gltfViewer";
 import { attachAvatarInteractions } from "@/lib/avatarInteractions";
 
-// Default GLB model — replace with your own avatar URL
-const DEFAULT_GLB_URL =
-  "https://models.readyplayer.me/64bfa15f0e72c63d7c3934a6.glb";
+// Default GLB model
+const DEFAULT_GLB_URL = "/698bdd8efcad0d2f33536b28.glb";
 
 interface Avatar3DProps {
   isListening: boolean;
