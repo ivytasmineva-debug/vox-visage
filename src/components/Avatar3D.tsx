@@ -56,8 +56,6 @@ const Avatar3D = ({
 
   // Drag to move the overlay
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    // Only drag from the wrapper background, not the 3D canvas interaction
-    if (e.target !== wrapperRef.current) return;
     dragState.current = {
       dragging: true,
       startX: e.clientX - position.x,
@@ -99,7 +97,7 @@ const Avatar3D = ({
       bloomStrength: 0.6,
       bloomRadius: 0.4,
       bloomThreshold: 0.85,
-      controls: true,
+      controls: false,
     })
       .then(async (viewer) => {
         if (disposed) { viewer.dispose(); return; }
