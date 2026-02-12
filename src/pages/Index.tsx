@@ -25,12 +25,10 @@ const Index = () => {
   const { isListening, transcript, startListening, stopListening } = useSpeechRecognition();
   const { speak, stop: stopSpeaking, isSpeaking } = useSpeechSynthesis();
 
-  // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // When transcript is finalized and user stops listening, send it
   const prevListeningRef = useRef(false);
   useEffect(() => {
     if (prevListeningRef.current && !isListening && transcript.trim()) {
@@ -39,7 +37,6 @@ const Index = () => {
     prevListeningRef.current = isListening;
   }, [isListening]);
 
-  // Update input while listening
   useEffect(() => {
     if (isListening && transcript) {
       setInput(transcript);
@@ -96,9 +93,12 @@ const Index = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-3 border-b border-border">
+    <div className="relative h-screen w-screen overflow-hidden" style={{ background: "transparent" }}>
+      {/* Fullscreen 3D Avatar as base layer */}
+      <Avatar3D isListening={isListening} isSpeaking={isSpeaking} isThinking={isLoading} glbUrl={glbUrl} />
+
+      {/* Header overlay on top */}
+      <header className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-3 z-[10000] bg-background/20 backdrop-blur-sm border-b border-border/20">
         <h1 className="text-lg font-display font-bold tracking-widest text-primary">
           AURA
         </h1>
@@ -106,7 +106,7 @@ const Index = () => {
           <LanguageToggle lang={lang} onToggle={() => setLang((l) => (l === "bn-BD" ? "en-US" : "bn-BD"))} />
           <button
             onClick={() => navigate("/settings")}
-            className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-primary"
+            className="p-2 rounded-lg hover:bg-secondary/50 transition-colors text-muted-foreground hover:text-primary"
             title="Settings"
           >
             <Settings size={18} />
@@ -114,15 +114,11 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Fullscreen 3D Avatar overlay */}
-      <Avatar3D isListening={isListening} isSpeaking={isSpeaking} isThinking={isLoading} glbUrl={glbUrl} />
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col items-center overflow-hidden">
-        {/* Chat area */}
-        <div className="flex-1 w-full max-w-2xl overflow-y-auto px-4 pb-4 space-y-4">
+      {/* Chat messages overlay */}
+      <div className="absolute top-14 bottom-20 left-0 right-0 z-[10000] overflow-y-auto px-4 pointer-events-auto">
+        <div className="max-w-2xl mx-auto space-y-4 pb-4">
           {messages.length === 0 && (
-            <div className="text-center text-muted-foreground mt-4">
+            <div className="text-center text-muted-foreground/70 mt-4">
               <p className="font-display text-sm tracking-wider">
                 {lang === "bn-BD"
                   ? "আমি AURA, আপনার AI সহকারী। কিছু জিজ্ঞেস করুন!"
@@ -137,8 +133,8 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Input bar */}
-      <div className="border-t border-border px-4 py-4">
+      {/* Input bar overlay at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 z-[10000] px-4 py-4 bg-background/20 backdrop-blur-sm border-t border-border/20">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <VoiceButton
             isListening={isListening}
@@ -147,8 +143,7 @@ const Index = () => {
             onStopSpeaking={stopSpeaking}
             disabled={isLoading}
           />
-
-          <div className="flex-1 flex items-center gap-2 bg-secondary rounded-full border border-border px-4 py-2 focus-within:border-primary transition-colors">
+          <div className="flex-1 flex items-center gap-2 bg-secondary/40 rounded-full border border-border/30 px-4 py-2 focus-within:border-primary transition-colors backdrop-blur-sm">
             <input
               ref={inputRef}
               type="text"

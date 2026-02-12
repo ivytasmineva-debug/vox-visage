@@ -155,9 +155,9 @@ const Avatar3D = ({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onWheel={onWheel}
-      className="fixed inset-0 pointer-events-auto"
+      className="absolute inset-0 pointer-events-auto"
       style={{
-        zIndex,
+        zIndex: 1,
         background: "transparent",
         touchAction: "none",
       }}
@@ -169,21 +169,21 @@ const Avatar3D = ({
           top: "50%",
           transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px)) scale(${scale})`,
           transformOrigin: "center center",
-          width: "min(100vw, 600px)",
-          height: "min(100vh, 700px)",
+          width: "100vw",
+          height: "100vh",
           transition: dragState.current.dragging ? "none" : "transform 0.1s ease-out",
         }}
       >
-        {/* 3D Viewer */}
+        {/* 3D Viewer - no frame, no background */}
         <div
           ref={containerRef}
-          className="w-full h-full rounded-xl overflow-hidden"
+          className="w-full h-full"
           style={{ background: "transparent" }}
         />
 
         {/* Loading overlay */}
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-background/80 backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
               <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               <span className="text-sm text-muted-foreground font-display tracking-wider">
@@ -195,34 +195,10 @@ const Avatar3D = ({
 
         {/* Error overlay */}
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-background/80 backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-sm text-destructive">{error}</span>
           </div>
         )}
-
-        {/* Status indicator */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-background/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
-          <div
-            className={`w-2.5 h-2.5 rounded-full transition-colors duration-300 ${
-              isListening
-                ? "bg-accent"
-                : isSpeaking
-                ? "bg-primary"
-                : isThinking
-                ? "bg-accent animate-pulse"
-                : "bg-muted-foreground"
-            }`}
-          />
-          <span className="text-xs text-muted-foreground font-display tracking-wider uppercase">
-            {isListening
-              ? "Listening..."
-              : isSpeaking
-              ? "Speaking..."
-              : isThinking
-              ? "Thinking..."
-              : "Ready"}
-          </span>
-        </div>
       </div>
     </div>
   );
