@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Box } from "lucide-react";
+import { ArrowLeft, Check, Box, Layers } from "lucide-react";
 
 const MODELS = [
   {
@@ -30,16 +30,32 @@ const MODELS = [
 ];
 
 const STORAGE_KEY = "aura-selected-model";
+const ZINDEX_KEY = "aura-overlay-zindex";
+
+const ZINDEX_OPTIONS = [
+  { label: "সবার উপরে (Top)", value: 9999 },
+  { label: "মাঝামাঝি (Mid)", value: 100 },
+  { label: "চ্যাটের নিচে (Below Chat)", value: 10 },
+  { label: "ব্যাকগ্রাউন্ড (Background)", value: 1 },
+];
 
 const Settings = () => {
   const navigate = useNavigate();
   const [selectedModel, setSelectedModel] = useState(() => {
     return localStorage.getItem(STORAGE_KEY) || MODELS[0].path;
   });
+  const [zIndex, setZIndex] = useState(() => {
+    const stored = localStorage.getItem(ZINDEX_KEY);
+    return stored ? parseInt(stored, 10) : 9999;
+  });
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, selectedModel);
   }, [selectedModel]);
+
+  useEffect(() => {
+    localStorage.setItem(ZINDEX_KEY, String(zIndex));
+  }, [zIndex]);
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
@@ -102,6 +118,35 @@ const Settings = () => {
                 );
               })}
             </div>
+          </section>
+
+          {/* Overlay Stack Order */}
+          <section>
+            <h2 className="font-display text-sm tracking-wider text-muted-foreground uppercase mb-4 flex items-center gap-2">
+              <Layers size={14} />
+              ওভারলে স্ট্যাক অর্ডার
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              {ZINDEX_OPTIONS.map((opt) => {
+                const isActive = zIndex === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setZIndex(opt.value)}
+                    className={`p-3 rounded-xl border text-left text-sm transition-all duration-200 ${
+                      isActive
+                        ? "border-primary bg-primary/10 text-primary font-semibold"
+                        : "border-border bg-card hover:border-muted-foreground/30 hover:bg-secondary text-foreground"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Avatar ওভারলে কোন লেয়ারে দেখাবে তা নির্ধারণ করুন।
+            </p>
           </section>
 
           {/* Preview thumbnail */}
