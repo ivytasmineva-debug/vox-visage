@@ -114,13 +114,11 @@ const Index = () => {
         </div>
       </header>
 
+      {/* Fullscreen 3D Avatar overlay */}
+      <Avatar3D isListening={isListening} isSpeaking={isSpeaking} isThinking={isLoading} glbUrl={glbUrl} />
+
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center overflow-hidden">
-        {/* 3D Avatar section */}
-        <div className="w-full max-w-lg">
-          <Avatar3D isListening={isListening} isSpeaking={isSpeaking} isThinking={isLoading} glbUrl={glbUrl} />
-        </div>
-
         {/* Chat area */}
         <div className="flex-1 w-full max-w-2xl overflow-y-auto px-4 pb-4 space-y-4">
           {messages.length === 0 && (
