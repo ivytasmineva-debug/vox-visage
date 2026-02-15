@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { createAvatarViewer, AvatarViewer } from "@/lib/gltfViewer";
 import { attachAvatarInteractions } from "@/lib/avatarInteractions";
+import { Move, RotateCcw } from "lucide-react";
 
 const DEFAULT_GLB_URL = "/698bdd8efcad0d2f33536b28.glb";
 
@@ -84,6 +85,12 @@ const Avatar3D = ({
     setScale(prev => Math.max(0.3, Math.min(3, prev - e.deltaY * 0.001)));
   }, []);
 
+  // Double-click to reset position & scale
+  const onDoubleClick = useCallback(() => {
+    setPosition({ x: 0, y: 0 });
+    setScale(1);
+  }, []);
+
   // Initialize viewer
   useEffect(() => {
     if (!containerRef.current) return;
@@ -153,6 +160,7 @@ const Avatar3D = ({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onWheel={onWheel}
+      onDoubleClick={onDoubleClick}
       className="absolute inset-0 pointer-events-auto"
       style={{
         zIndex: 1,
@@ -198,6 +206,25 @@ const Avatar3D = ({
           </div>
         )}
       </div>
+
+      {/* Drag handle + reset button */}
+      {!loading && !error && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/40 backdrop-blur-md border border-border/30 text-muted-foreground text-xs select-none cursor-grab active:cursor-grabbing">
+            <Move size={14} />
+            <span>ড্র্যাগ করুন</span>
+          </div>
+          {(position.x !== 0 || position.y !== 0 || scale !== 1) && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDoubleClick(); }}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-background/40 backdrop-blur-md border border-border/30 text-muted-foreground text-xs hover:text-foreground transition-colors"
+            >
+              <RotateCcw size={13} />
+              <span>রিসেট</span>
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
