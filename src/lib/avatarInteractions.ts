@@ -26,6 +26,10 @@ export async function attachAvatarInteractions(
   viewer: ViewerLike,
   options: Partial<Options> = {}
 ) {
+  // Read calibrated values from localStorage
+  const savedGain = localStorage.getItem('aura-lipsync-gain');
+  const savedSmoothing = localStorage.getItem('aura-lipsync-smoothing');
+
   const opts: Options = {
     camera: options.camera ?? (viewer as any).camera,
     renderer: options.renderer ?? (viewer as any).renderer,
@@ -34,9 +38,9 @@ export async function attachAvatarInteractions(
       'mouthOpen', 'JawOpen', 'v_mouthOpen', 'mouth_A', 'MouthOpen', 'Aa', 'OPEN',
     ],
     jawBoneName: options.jawBoneName ?? 'Jaw',
-    morphSmooth: options.morphSmooth ?? 0.12,
-    micSmoothing: options.micSmoothing ?? 0.12,
-    micGain: options.micGain ?? 3.0,
+    morphSmooth: options.morphSmooth ?? (savedSmoothing ? parseFloat(savedSmoothing) : 0.12),
+    micSmoothing: options.micSmoothing ?? (savedSmoothing ? parseFloat(savedSmoothing) : 0.12),
+    micGain: options.micGain ?? (savedGain ? parseFloat(savedGain) : 3.0),
     glowMaterialNames: options.glowMaterialNames ?? [],
   };
 

@@ -8,6 +8,7 @@ import Avatar3D from "@/components/Avatar3D";
 import ChatMessage from "@/components/ChatMessage";
 import VoiceButton from "@/components/VoiceButton";
 import LanguageToggle from "@/components/LanguageToggle";
+import LipSyncCalibration, { CALIBRATION_KEY } from "@/components/LipSyncCalibration";
 import { toast } from "sonner";
 
 const STORAGE_KEY = "aura-selected-model";
@@ -19,6 +20,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lang, setLang] = useState<"bn-BD" | "en-US">("bn-BD");
   const [glbUrl, setGlbUrl] = useState(() => localStorage.getItem(STORAGE_KEY) || "/698bdd8efcad0d2f33536b28.glb");
+  const [showCalibration, setShowCalibration] = useState(() => !localStorage.getItem(CALIBRATION_KEY));
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -94,6 +96,9 @@ const Index = () => {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden" style={{ background: "transparent" }}>
+      {/* First-run lip-sync calibration */}
+      {showCalibration && <LipSyncCalibration onComplete={() => setShowCalibration(false)} />}
+
       {/* Fullscreen 3D Avatar as base layer */}
       <Avatar3D isListening={isListening} isSpeaking={isSpeaking} isThinking={isLoading} glbUrl={glbUrl} />
 

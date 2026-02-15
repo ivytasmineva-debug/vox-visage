@@ -120,16 +120,19 @@ export async function createAvatarViewer(
     }
   });
 
-  /* Auto Center & Frame */
+  /* Auto Center & Frame — place model at exact screen center */
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   model.position.sub(center);
 
   const avatarHeight = size.y || 1.6;
-  camera.position.set(0, avatarHeight * 0.9, avatarHeight * 1.4);
+  // Camera looks at vertical center of avatar, positioned to frame head+torso
+  const camTargetY = avatarHeight * 0.5;
+  camera.position.set(0, camTargetY, avatarHeight * 1.4);
+  camera.lookAt(0, camTargetY, 0);
   if (controls) {
-    controls.target.set(0, avatarHeight * 0.55, 0);
+    controls.target.set(0, camTargetY, 0);
     controls.update();
   }
 
