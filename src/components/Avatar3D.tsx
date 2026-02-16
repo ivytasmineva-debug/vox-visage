@@ -92,8 +92,9 @@ const Avatar3D = ({
     });
   }, []);
 
-  const onPointerUp = useCallback(() => {
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
     dragState.current.dragging = false;
+    wrapperRef.current?.releasePointerCapture(e.pointerId);
   }, []);
 
   // Scroll to zoom
@@ -167,31 +168,32 @@ const Avatar3D = ({
   return (
     <div
       ref={wrapperRef}
-      onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onWheel={onWheel}
       onDoubleClick={resetPosition}
-      className="absolute inset-0 pointer-events-auto"
+      className="absolute left-0 top-0 w-full h-full pointer-events-none"
       style={{
         zIndex: 1,
         background: "transparent",
-        touchAction: "none",
       }}
     >
+      {/* Floating movable container */}
       <div
         style={{
           position: "absolute",
-          left: "50%",
-          top: "50%",
-          transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px)) scale(${scale})`,
+          left: `calc(50% + ${position.x}px)`,
+          top: `calc(50% + ${position.y}px)`,
+          transform: `translate(-50%, -50%) scale(${scale})`,
           transformOrigin: "center center",
           width: "100vw",
           height: "100vh",
-          transition: dragState.current.dragging ? "none" : "transform 0.1s ease-out",
+          pointerEvents: "auto",
+          touchAction: "none",
+          transition: dragState.current.dragging ? "none" : "transform 0.15s ease-out",
         }}
       >
-        {/* 3D Viewer - no frame, no background */}
+        {/* 3D Viewer */}
         <div
           ref={containerRef}
           className="w-full h-full"
@@ -220,8 +222,12 @@ const Avatar3D = ({
 
       {/* Drag handle + reset button */}
       {!loading && !error && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/40 backdrop-blur-md border border-border/30 text-muted-foreground text-xs select-none cursor-grab active:cursor-grabbing">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10" style={{ pointerEvents: "auto" }}>
+          <div
+            onPointerDown={onPointerDown}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/40 backdrop-blur-md border border-border/30 text-muted-foreground text-xs select-none cursor-grab active:cursor-grabbing"
+            style={{ touchAction: "none" }}
+          >
             <Move size={14} />
             <span>ড্র্যাগ করুন</span>
           </div>
