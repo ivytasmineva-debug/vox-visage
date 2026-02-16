@@ -37,6 +37,9 @@ const Avatar3D = ({
     setPosition({ x: 0, y: 0 });
   }, []);
 
+  // Drag handle ref for pointer capture
+  const handleRef = useRef<HTMLDivElement>(null);
+
   // Drag to move the overlay — only from drag handle
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
@@ -46,7 +49,8 @@ const Avatar3D = ({
       startX: e.clientX - position.x,
       startY: e.clientY - position.y,
     };
-    wrapperRef.current?.setPointerCapture(e.pointerId);
+    // Capture on the handle itself so move/up events follow it
+    handleRef.current?.setPointerCapture(e.pointerId);
 
     // Double-tap detection for touch
     const now = Date.now();
@@ -68,7 +72,7 @@ const Avatar3D = ({
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     dragState.current.dragging = false;
-    wrapperRef.current?.releasePointerCapture(e.pointerId);
+    handleRef.current?.releasePointerCapture(e.pointerId);
   }, []);
 
   // Initialize viewer with OrbitControls enabled
@@ -134,33 +138,25 @@ const Avatar3D = ({
   }, [isThinking]);
 
   return (
+    // Outer wrapper: pointer-events-none so clicks pass through to UI beneath
     <div
       ref={wrapperRef}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onDoubleClick={resetPosition}
       className="fixed inset-0 pointer-events-none"
-      style={{
-        zIndex: 9999,
-        width: "100vw",
-        height: "100vh",
-        background: "transparent",
-      }}
+      style={{ zIndex: 9999 }}
     >
-      {/* Floating movable container */}
+      {/* Floating movable container — receives 3D interactions */}
       <div
         style={{
           position: "absolute",
           left: `calc(50% + ${position.x}px)`,
           top: `calc(50% + ${position.y}px)`,
           transform: "translate(-50%, -50%)",
-          transformOrigin: "center center",
           width: "100vw",
           height: "100vh",
           pointerEvents: "auto",
           touchAction: "none",
-          transition: dragState.current.dragging ? "none" : "transform 0.15s ease-out",
         }}
+        onDoubleClick={resetPosition}
       >
         {/* 3D Viewer */}
         <div
@@ -171,7 +167,7 @@ const Avatar3D = ({
 
         {/* Loading overlay */}
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="flex flex-col items-center gap-3">
               <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               <span className="text-sm text-muted-foreground font-display tracking-wider">
@@ -183,17 +179,20 @@ const Avatar3D = ({
 
         {/* Error overlay */}
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span className="text-sm text-destructive">{error}</span>
           </div>
         )}
       </div>
 
-      {/* Drag handle + reset button */}
+      {/* Drag handle + reset — pointer capture lives here */}
       {!loading && !error && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10" style={{ pointerEvents: "auto" }}>
           <div
+            ref={handleRef}
             onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/40 backdrop-blur-md border border-border/30 text-muted-foreground text-xs select-none cursor-grab active:cursor-grabbing"
             style={{ touchAction: "none" }}
           >
