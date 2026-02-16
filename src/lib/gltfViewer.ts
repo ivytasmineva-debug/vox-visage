@@ -57,6 +57,11 @@ export async function createAvatarViewer(
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enablePan = false;
     controls.enableDamping = true;
+    controls.enableZoom = true;
+    controls.enableRotate = true;
+    controls.minDistance = 0.5;
+    controls.maxDistance = 10;
+    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: (THREE.TOUCH as any).DOLLY_PAN ?? 2 };
     controls.target.set(0, 1.2, 0);
     controls.update();
   }
