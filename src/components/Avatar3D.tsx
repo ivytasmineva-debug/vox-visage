@@ -19,51 +19,58 @@ const Avatar3D = ({
   glbUrl,
 }: Avatar3DProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<AvatarViewer | null>(null);
-  const interactionsRef = useRef<Awaited<ReturnType<typeof attachAvatarInteractions>> | null>(null);
+  const interactionsRef = useRef<
+    Awaited<ReturnType<typeof attachAvatarInteractions>> | null
+  >(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Drag state for moving the overlay position
-  const dragState = useRef({ dragging: false, startX: 0, startY: 0 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
-  // Double-tap detection
+  const dragState = useRef({
+    dragging: false,
+    startX: 0,
+    startY: 0,
+  });
+
   const lastTapRef = useRef(0);
 
-  // Reset helper
+  /* -------------------- Reset -------------------- */
   const resetPosition = useCallback(() => {
     setPosition({ x: 0, y: 0 });
   }, []);
 
-  // Drag handle ref for pointer capture
-  const handleRef = useRef<HTMLDivElement>(null);
+  /* -------------------- Drag Logic -------------------- */
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-  // Drag to move the overlay — only from drag handle
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragState.current = {
-      dragging: true,
-      startX: e.clientX - position.x,
-      startY: e.clientY - position.y,
-    };
-    // Capture on the handle itself so move/up events follow it
-    handleRef.current?.setPointerCapture(e.pointerId);
+      dragState.current = {
+        dragging: true,
+        startX: e.clientX - position.x,
+        startY: e.clientY - position.y,
+      };
 
-    // Double-tap detection for touch
-    const now = Date.now();
-    if (now - lastTapRef.current < 350) {
-      resetPosition();
-      dragState.current.dragging = false;
-    }
-    lastTapRef.current = now;
-  }, [position, resetPosition]);
+      handleRef.current?.setPointerCapture(e.pointerId);
+
+      const now = Date.now();
+      if (now - lastTapRef.current < 350) {
+        resetPosition();
+        dragState.current.dragging = false;
+      }
+      lastTapRef.current = now;
+    },
+    [position, resetPosition]
+  );
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragState.current.dragging) return;
+
     e.preventDefault();
+
     setPosition({
       x: e.clientX - dragState.current.startX,
       y: e.clientY - dragState.current.startY,
@@ -75,9 +82,10 @@ const Avatar3D = ({
     handleRef.current?.releasePointerCapture(e.pointerId);
   }, []);
 
-  // Initialize viewer with OrbitControls enabled
+  /* -------------------- Initialize Viewer -------------------- */
   useEffect(() => {
     if (!containerRef.current) return;
+
     let disposed = false;
 
     setLoading(true);
@@ -91,11 +99,23 @@ const Avatar3D = ({
       controls: true,
     })
       .then(async (viewer) => {
-        if (disposed) { viewer.dispose(); return; }
+        if (disposed) {
+          viewer.dispose();
+          return;
+        }
+
         viewerRef.current = viewer;
 
-        const interactions = await attachAvatarInteractions(containerRef.current!, viewer);
-        if (disposed) { interactions.dispose(); return; }
+        const interactions = await attachAvatarInteractions(
+          containerRef.current!,
+          viewer
+        );
+
+        if (disposed) {
+          interactions.dispose();
+          return;
+        }
+
         interactionsRef.current = interactions;
         setLoading(false);
       })
@@ -116,10 +136,11 @@ const Avatar3D = ({
     };
   }, [glbUrl]);
 
-  // Sync states
+  /* -------------------- Sync States -------------------- */
   useEffect(() => {
     viewerRef.current?.setListening(isListening);
     interactionsRef.current?.setState(isListening ? "listening" : "idle");
+
     if (isListening) {
       interactionsRef.current?.startMic();
     } else {
@@ -137,35 +158,30 @@ const Avatar3D = ({
     interactionsRef.current?.setState(isThinking ? "thinking" : "idle");
   }, [isThinking]);
 
+  /* -------------------- Render -------------------- */
   return (
-    // Outer wrapper: pointer-events-none so clicks pass through to UI beneath
-    <div
-      ref={wrapperRef}
-      className="fixed inset-0 pointer-events-none"
-      style={{ zIndex: 9999 }}
-    >
-      {/* Floating movable container — receives 3D interactions */}
+    <div className="absolute inset-0 pointer-events-none">
+      {/* Movable container */}
       <div
         style={{
           position: "absolute",
           left: `calc(50% + ${position.x}px)`,
           top: `calc(50% + ${position.y}px)`,
           transform: "translate(-50%, -50%)",
-          width: "100vw",
-          height: "100vh",
+          width: "100%",
+          height: "100%",
           pointerEvents: "auto",
           touchAction: "none",
         }}
         onDoubleClick={resetPosition}
       >
-        {/* 3D Viewer */}
         <div
           ref={containerRef}
           className="w-full h-full"
           style={{ background: "transparent" }}
         />
 
-        {/* Loading overlay */}
+        {/* Loading */}
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="flex flex-col items-center gap-3">
@@ -177,7 +193,7 @@ const Avatar3D = ({
           </div>
         )}
 
-        {/* Error overlay */}
+        {/* Error */}
         {error && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span className="text-sm text-destructive">{error}</span>
@@ -185,9 +201,12 @@ const Avatar3D = ({
         )}
       </div>
 
-      {/* Drag handle + reset — pointer capture lives here */}
+      {/* Drag Handle */}
       {!loading && !error && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10" style={{ pointerEvents: "auto" }}>
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2"
+          style={{ pointerEvents: "auto" }}
+        >
           <div
             ref={handleRef}
             onPointerDown={onPointerDown}
@@ -199,9 +218,13 @@ const Avatar3D = ({
             <Move size={14} />
             <span>ড্র্যাগ করুন</span>
           </div>
+
           {(position.x !== 0 || position.y !== 0) && (
             <button
-              onClick={(e) => { e.stopPropagation(); resetPosition(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                resetPosition();
+              }}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-background/40 backdrop-blur-md border border-border/30 text-muted-foreground text-xs hover:text-foreground transition-colors"
             >
               <RotateCcw size={13} />
@@ -215,3 +238,4 @@ const Avatar3D = ({
 };
 
 export default Avatar3D;
+        
