@@ -5,8 +5,6 @@ import { Move, RotateCcw } from "lucide-react";
 
 const DEFAULT_GLB_URL = "/698bdd8efcad0d2f33536b28.glb";
 
-const ZINDEX_KEY = "aura-overlay-zindex";
-
 interface Avatar3DProps {
   isListening: boolean;
   isSpeaking: boolean;
@@ -27,43 +25,19 @@ const Avatar3D = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Drag state
+  // Drag state for moving the overlay position
   const dragState = useRef({ dragging: false, startX: 0, startY: 0 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  // Scale (pinch / scroll zoom)
-  const [scale, setScale] = useState(1);
 
   // Double-tap detection
   const lastTapRef = useRef(0);
 
-  // Z-index from localStorage
-  const [zIndex, setZIndex] = useState(() => {
-    const stored = localStorage.getItem(ZINDEX_KEY);
-    return stored ? parseInt(stored, 10) : 9999;
-  });
-
-  // Listen for storage changes (from Settings page)
-  useEffect(() => {
-    const handler = () => {
-      const stored = localStorage.getItem(ZINDEX_KEY);
-      if (stored) setZIndex(parseInt(stored, 10));
-    };
-    window.addEventListener("storage", handler);
-    const interval = setInterval(handler, 1000);
-    return () => {
-      window.removeEventListener("storage", handler);
-      clearInterval(interval);
-    };
-  }, []);
-
   // Reset helper
   const resetPosition = useCallback(() => {
     setPosition({ x: 0, y: 0 });
-    setScale(1);
   }, []);
 
-  // Drag to move the overlay — capture on the wrapper, not e.target
+  // Drag to move the overlay — only from drag handle
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -97,13 +71,7 @@ const Avatar3D = ({
     wrapperRef.current?.releasePointerCapture(e.pointerId);
   }, []);
 
-  // Scroll to zoom
-  const onWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    setScale(prev => Math.max(0.3, Math.min(3, prev - e.deltaY * 0.001)));
-  }, []);
-
-  // Initialize viewer
+  // Initialize viewer with OrbitControls enabled
   useEffect(() => {
     if (!containerRef.current) return;
     let disposed = false;
@@ -116,7 +84,7 @@ const Avatar3D = ({
       bloomStrength: 0.6,
       bloomRadius: 0.4,
       bloomThreshold: 0.85,
-      controls: false,
+      controls: true,
     })
       .then(async (viewer) => {
         if (disposed) { viewer.dispose(); return; }
@@ -170,11 +138,12 @@ const Avatar3D = ({
       ref={wrapperRef}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      onWheel={onWheel}
       onDoubleClick={resetPosition}
-      className="absolute left-0 top-0 w-full h-full pointer-events-none"
+      className="fixed inset-0 pointer-events-none"
       style={{
-        zIndex: 1,
+        zIndex: 9999,
+        width: "100vw",
+        height: "100vh",
         background: "transparent",
       }}
     >
@@ -184,7 +153,7 @@ const Avatar3D = ({
           position: "absolute",
           left: `calc(50% + ${position.x}px)`,
           top: `calc(50% + ${position.y}px)`,
-          transform: `translate(-50%, -50%) scale(${scale})`,
+          transform: "translate(-50%, -50%)",
           transformOrigin: "center center",
           width: "100vw",
           height: "100vh",
@@ -231,7 +200,7 @@ const Avatar3D = ({
             <Move size={14} />
             <span>ড্র্যাগ করুন</span>
           </div>
-          {(position.x !== 0 || position.y !== 0 || scale !== 1) && (
+          {(position.x !== 0 || position.y !== 0) && (
             <button
               onClick={(e) => { e.stopPropagation(); resetPosition(); }}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-background/40 backdrop-blur-md border border-border/30 text-muted-foreground text-xs hover:text-foreground transition-colors"

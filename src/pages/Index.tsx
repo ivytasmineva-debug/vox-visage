@@ -103,7 +103,7 @@ const Index = () => {
       <Avatar3D isListening={isListening} isSpeaking={isSpeaking} isThinking={isLoading} glbUrl={glbUrl} />
 
       {/* Header overlay on top */}
-      <header className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-3 z-[10000] bg-background/20 backdrop-blur-sm border-b border-border/20">
+      <header className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-3 z-[10001] bg-background/20 backdrop-blur-sm border-b border-border/20">
         <h1 className="text-lg font-display font-bold tracking-widest text-primary">
           AURA
         </h1>
@@ -120,7 +120,7 @@ const Index = () => {
       </header>
 
       {/* Chat messages overlay */}
-      <div className="absolute top-14 bottom-20 left-0 right-0 z-[10000] overflow-y-auto px-4 pointer-events-auto">
+      <div className="absolute top-14 bottom-20 left-0 right-0 z-[10001] overflow-y-auto px-4 pointer-events-auto">
         <div className="max-w-2xl mx-auto space-y-4 pb-4">
           {messages.length === 0 && (
             <div className="text-center text-muted-foreground/70 mt-4">
@@ -139,7 +139,7 @@ const Index = () => {
       </div>
 
       {/* Input bar overlay at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 z-[10000] px-4 py-4 bg-background/20 backdrop-blur-sm border-t border-border/20">
+      <div className="absolute bottom-0 left-0 right-0 z-[10001] px-4 py-4 bg-background/20 backdrop-blur-sm border-t border-border/20">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <VoiceButton
             isListening={isListening}
